@@ -142,7 +142,7 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
   height: 120px;
   overflow: visible;
   clip-path: inset(0 0 100% 0);   /* hidden until visible */
-  transition: clip-path 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+  transition: clip-path 0.5s cubic-bezier(0.65, 0, 0.35, 1) 0.45s;   /* hiding: last */
 }
 .branch path {
   fill: none;
@@ -161,7 +161,7 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
   background: var(--white);
   border: 4px solid var(--leaf);
   border-radius: 50%;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s;
+  transition: transform 0.25s ease-in 0.3s;   /* hiding */
   z-index: 2;
 }
 
@@ -194,9 +194,9 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
   opacity: 0;
   transform: scale(0.85);
   transform-origin: top left;
-  transition:
-    opacity 0.4s ease 0.75s,
-    transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.75s;
+  transition:                                      /* hiding */
+    opacity 0.3s ease 0.1s,
+    transform 0.35s ease-in 0.1s;
 }
 .project:nth-child(even) .card img,
 .project:nth-child(even) .placeholder { transform-origin: top right; }
@@ -223,7 +223,7 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
   margin-top: 1.25rem;
   opacity: 0;
   transform: translateY(10px);
-  transition: opacity 0.5s ease 1.05s, transform 0.5s ease 1.05s;
+  transition: opacity 0.25s ease, transform 0.25s ease;   /* hiding: first */
 }
 .year {
   color: var(--leaf);
@@ -243,12 +243,30 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
 }
 .card a { font-weight: 600; }
 
-/* Revealed state (added by script.js when you scroll to it) */
-.project.is-visible .branch svg { clip-path: inset(0 0 0 0); }
-.project.is-visible .commit { transform: translate(-50%, -50%) scale(1); }
+/* Revealed state (added by script.js when you scroll to it).
+   Showing runs branch → dot → picture → text.
+   Hiding (the transitions above) runs the same steps in reverse. */
+.project.is-visible .branch svg {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.project.is-visible .commit {
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s;
+}
 .project.is-visible .card img,
-.project.is-visible .placeholder { opacity: 1; transform: scale(1); }
-.project.is-visible .card-text { opacity: 1; transform: none; }
+.project.is-visible .placeholder {
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 0.4s ease 0.75s,
+    transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.75s;
+}
+.project.is-visible .card-text {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.5s ease 1.05s, transform 0.5s ease 1.05s;
+}
 
 /* ===== Footer ===== */
 .footer {
@@ -294,5 +312,8 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
 /* ===== Respect people who turn off animations ===== */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .branch svg, .commit, .card img, .placeholder, .card-text { transition: none; }
+  .branch svg, .commit, .card img, .placeholder, .card-text,
+  .project.is-visible .branch svg, .project.is-visible .commit,
+  .project.is-visible .card img, .project.is-visible .placeholder,
+  .project.is-visible .card-text { transition: none; }
 }

@@ -13,7 +13,8 @@ document.querySelectorAll('.card img').forEach(function (img) {
   }
 });
 
-// 2. Grow each branch and pop in its card when it scrolls into view
+// 2. Grow each branch and pop in its card when it scrolls into view,
+//    and undo it in reverse when you scroll back up past it
 var projects = document.querySelectorAll('.project');
 var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -23,11 +24,15 @@ if (!('IntersectionObserver' in window) || reduceMotion) {
   var observer = new IntersectionObserver(function (entries) {
     entries.forEach(function (entry) {
       if (entry.isIntersecting) {
+        // Its top has scrolled above the trigger line: show it
         entry.target.classList.add('is-visible');
-        observer.unobserve(entry.target);
+      } else if (entry.boundingClientRect.top > 0) {
+        // It dropped back below the trigger line (scrolling up): hide it.
+        // Projects that left through the top of the screen stay visible.
+        entry.target.classList.remove('is-visible');
       }
     });
-  }, { threshold: 0.3 });
+  }, { rootMargin: '0px 0px -25% 0px', threshold: 0 });
   projects.forEach(function (p) { observer.observe(p); });
 }
 
