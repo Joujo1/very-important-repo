@@ -1,0 +1,298 @@
+/* ===== Colors: change these to restyle the whole site ===== */
+:root {
+  --forest: #1d4d2f;   /* dark green: hero, footer, headings */
+  --leaf:   #2f8a55;   /* main green: branches, links */
+  --sprout: #a8d8b6;   /* light green: details */
+  --mint:   #e6f3ea;   /* very light green: empty trunk, placeholders */
+  --white:  #ffffff;
+  --ink:    #16281d;   /* body text */
+
+  --trunk-x: 50%;      /* where the timeline line sits */
+  --middle: 200px;     /* width of the column the branches grow in */
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--white);
+  color: var(--ink);
+  font-family: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+a { color: var(--leaf); text-underline-offset: 3px; }
+a:hover { color: var(--forest); }
+a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-radius: 4px; }
+
+/* ===== Hero ===== */
+.hero {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem clamp(1.25rem, 6vw, 6rem) 2rem;
+  background: var(--forest);
+  color: var(--white);
+  position: relative;
+}
+
+.hero-inner { max-width: 62rem; }
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 7vw, 5.75rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  max-width: 15ch;
+}
+
+.hero-sub {
+  margin: 2rem 0 0;
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  max-width: 36ch;
+  color: var(--sprout);
+}
+.hero-sub strong { color: var(--white); font-weight: 600; }
+
+.scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--sprout);
+}
+.scroll-hint i {
+  width: 2px;
+  height: 48px;
+  background: linear-gradient(var(--sprout), transparent);
+}
+
+/* ===== Timeline ===== */
+.timeline {
+  position: relative;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 6rem 1.25rem 4rem;
+}
+
+.trunk {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--trunk-x);
+  width: 4px;
+  transform: translateX(-50%);
+  background: var(--mint);
+  border-radius: 2px;
+}
+.trunk-fill {
+  height: calc(var(--progress, 0) * 100%);
+  background: var(--leaf);
+  border-radius: 2px;
+}
+
+.projects {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr var(--middle) 1fr;
+}
+/* On wide screens, alternate projects overlap a bit so there's less empty space */
+.project + .project { margin-top: -7rem; }
+
+/* The branch: grows from the trunk out to the card */
+.branch {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  height: 140px;
+}
+.branch::before {               /* dot on the trunk where the branch starts */
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  background: var(--forest);
+  border-radius: 50%;
+}
+.branch svg {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  right: 0;
+  width: 50%;
+  height: 120px;
+  overflow: visible;
+  clip-path: inset(0 0 100% 0);   /* hidden until visible */
+  transition: clip-path 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.branch path {
+  fill: none;
+  stroke: var(--leaf);
+  stroke-width: 4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.commit {                        /* dot at the end of the branch */
+  position: absolute;
+  top: 120px;
+  left: 100%;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%) scale(0);
+  background: var(--white);
+  border: 4px solid var(--leaf);
+  border-radius: 50%;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s;
+  z-index: 2;
+}
+
+/* Cards alternate sides */
+.card {
+  grid-column: 3;
+  grid-row: 1;
+  padding: 104px 0 0 1.5rem;
+}
+
+.project:nth-child(even) .card {
+  grid-column: 1;
+  padding: 104px 1.5rem 0 0;
+}
+.project:nth-child(even) .branch svg {
+  left: 0;
+  right: 50%;
+  transform: scaleX(-1);
+}
+.project:nth-child(even) .commit { left: 0; }
+
+/* Image + placeholder */
+.card img,
+.placeholder {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(0.85);
+  transform-origin: top left;
+  transition:
+    opacity 0.4s ease 0.75s,
+    transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.75s;
+}
+.project:nth-child(even) .card img,
+.project:nth-child(even) .placeholder { transform-origin: top right; }
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  text-align: center;
+  color: var(--forest);
+  font-size: 0.95rem;
+  background:
+    repeating-linear-gradient(45deg, var(--mint) 0 14px, var(--white) 14px 28px);
+  border: 2px dashed var(--sprout);
+}
+.placeholder code {
+  display: block;
+  margin-top: 0.25rem;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.card-text {
+  margin-top: 1.25rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.5s ease 1.05s, transform 0.5s ease 1.05s;
+}
+.year {
+  color: var(--leaf);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.card h2 {
+  margin: 0.15rem 0 0.5rem;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--forest);
+}
+.card p {
+  margin: 0 0 0.75rem;
+  max-width: 40ch;
+}
+.card a { font-weight: 600; }
+
+/* Revealed state (added by script.js when you scroll to it) */
+.project.is-visible .branch svg { clip-path: inset(0 0 0 0); }
+.project.is-visible .commit { transform: translate(-50%, -50%) scale(1); }
+.project.is-visible .card img,
+.project.is-visible .placeholder { opacity: 1; transform: scale(1); }
+.project.is-visible .card-text { opacity: 1; transform: none; }
+
+/* ===== Footer ===== */
+.footer {
+  margin-top: 6rem;
+  padding: 5rem clamp(1.25rem, 6vw, 6rem);
+  background: var(--forest);
+  color: var(--white);
+}
+.footer h2 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  max-width: 20ch;
+}
+.footer a { color: var(--sprout); font-weight: 600; }
+.footer a:hover { color: var(--white); }
+.footer-links { display: flex; gap: 1.5rem; }
+
+/* ===== Phones: timeline moves to the left, all cards on the right ===== */
+@media (max-width: 760px) {
+  :root { --middle: 64px; --trunk-x: calc(1.25rem + 32px); }
+
+  .project { grid-template-columns: var(--middle) 1fr; }
+  .project + .project { margin-top: 3rem; }
+  .branch { grid-column: 1; }
+
+  .card,
+  .project:nth-child(even) .card {
+    grid-column: 2;
+    padding: 104px 0 0 0.75rem;
+  }
+  .project:nth-child(even) .branch svg {
+    left: 50%;
+    right: 0;
+    transform: none;
+  }
+  .project:nth-child(even) .commit { left: 100%; }
+  .project:nth-child(even) .card img,
+  .project:nth-child(even) .placeholder { transform-origin: top left; }
+}
+
+/* ===== Respect people who turn off animations ===== */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .branch svg, .commit, .card img, .placeholder, .card-text { transition: none; }
+}
