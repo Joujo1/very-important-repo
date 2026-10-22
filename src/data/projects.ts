@@ -19,65 +19,72 @@ export interface Project extends SubProject {
 /** The timeline, oldest first. */
 export const projects: readonly Project[] = [
   {
-    date: '2022',
-    title: 'Project one',
+    date: '2020',
+    title: 'Original Lime-Scooter',
     description:
-      'A short description of what you built, which tools you used, and the part you’re proudest of. Two or three sentences is plenty.',
-    image: 'images/project-1.jpeg',
-    link: '#',
+      'Altough we are in no way associated with Lime, we have made great contributions to the scooter market. Furthermore, security has always been our top priority, without compromising comfort.',
+    image: 'images/1.jpeg',
+  },
+  {
+    date: '2021',
+    title: 'Rocket-Pallet',
+    description:
+      'Im happy to reveal our transformative, revolutionary and market-destroying logistics solution.',
+    image: 'images/2.jpeg',
+    children: [
+      { description: 'Testing – works.', image: 'images/2.1.jpeg' },
+      { description: 'Manufacturing – in our Suva-approved cleanroom, every pallet is made with handcrafted swiss care.', image: 'images/2.2.jpeg' },
+    ],
+  },
+  {
+    date: '2022',
+    title: 'Car',
+    description:
+      '',
+    image: 'images/3.jpeg',
   },
   {
     date: '2023',
-    title: 'Project two',
+    title: 'Model 0',
     description:
-      'What problem did this solve, and for whom? Mention one concrete result if you have one, like users, a grade, or time saved.',
-    image: 'images/project-2.jpeg',
-    link: '#',
-  },
-  {
-    date: '2024',
-    title: 'Project three',
-    description:
-      'Describe your role here. Did you build it alone or with a team, and which part was yours?',
-    image: 'images/project-3.jpeg',
-    link: '#',
-  },
-  {
-    date: '2025',
-    title: 'Project four',
-    description:
-      'Something you learned from this project, or what you would do differently next time.',
-    image: 'images/project-4.jpeg',
-    link: '#',
+      'Continuing our tradition of building safe and sound vehicles.',
+    image: 'images/4.jpeg',
     children: [
       [
-        {
-          description: 'Two follow-ups that ran at the same time, side by side.',
-          image: 'images/project-4-1.jpeg',
-        },
-        {
-          description: 'The second of the pair.',
-          image: 'images/project-4-2.jpeg',
-        },
+        { description: 'Two follow-ups that ran at the same time, side by side.', image: 'images/4.1.jpeg' },
+        { description: 'The second of the pair.', image: 'images/4.2.jpeg' },
       ],
     ],
   },
   {
-    date: '2026',
+    date: '2024',
     title: 'Project five',
-    description:
-      'Your most recent work. Put your strongest project here or at the top, since those are the ones people actually read.',
-    image: 'images/project-5.jpeg',
-    link: '#',
+    description: 'What this project was about and what you did on it.',
+    image: 'images/5.jpeg',
+    children: [{ description: 'A spin-off that grew out of project five.', image: 'images/5.1.jpeg' }],
+  },
+  {
+    date: '2025',
+    title: 'Project six',
+    description: 'What this project was about and what you did on it.',
+    image: 'images/6.jpeg',
     children: [
-      {
-        description: 'A spin-off that grew out of project five.',
-        image: 'images/project-5-1.jpeg',
-      },
-      {
-        description: 'Another follow-up to project five.',
-        image: 'images/project-5-2.jpeg',
-      },
+      { description: 'A follow-up to project six.', image: 'images/6.1.jpeg' },
+      { description: 'Another follow-up to project six.', image: 'images/6.2.jpeg' },
     ],
+  },
+  {
+    date: '2026',
+    title: 'Project seven',
+    description: 'What this project was about and what you did on it.',
+    image: 'images/7.jpeg',
+    children: [{ description: 'A follow-up to project seven.', image: 'images/7.1.jpeg' }],
+  },
+  {
+    date: '2026',
+    title: 'Project eight',
+    description:
+      'My most recent work.',
+    image: 'images/8.jpeg',
   },
 ]
