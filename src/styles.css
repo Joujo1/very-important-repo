@@ -112,10 +112,9 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
   display: grid;
   grid-template-columns: 1fr var(--middle) 1fr;
 }
-/* On wide screens, alternate projects overlap a bit so there's less empty space */
-.project + .project { margin-top: -7rem; }
+.project + .project { margin-top: 4rem; }
 
-/* The branch: grows from the trunk out to the card */
+/* The branch: grows from the trunk out to the picture */
 .branch {
   grid-column: 2;
   grid-row: 1;
@@ -164,18 +163,6 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
   transition: transform 0.25s ease-in 0.3s;   /* hiding */
   z-index: 2;
 }
-
-/* Cards alternate sides */
-.card {
-  grid-column: 3;
-  grid-row: 1;
-  padding: 104px 0 0 1.5rem;
-}
-
-.project:nth-child(even) .card {
-  grid-column: 1;
-  padding: 104px 1.5rem 0 0;
-}
 .project:nth-child(even) .branch svg {
   left: 0;
   right: 50%;
@@ -183,8 +170,83 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
 }
 .project:nth-child(even) .commit { left: 0; }
 
+/* The date sits on the branch itself, as a pill over the line */
+.branch-date {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 0.6rem;
+  background: var(--white);
+  border: 2px solid var(--leaf);
+  border-radius: 999px;
+  color: var(--forest);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  position: absolute;
+  top: 56px;                     /* middle of the curve */
+  left: 75%;
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0;
+  transition: opacity 0.2s ease 0.35s, transform 0.2s ease 0.35s;   /* hiding */
+  z-index: 1;
+}
+.project:nth-child(even) .branch-date { left: 25%; }
+
+/* One row per entry: the picture on the branch's side, its description
+   in a box across the trunk. Pictures and boxes swap sides every project. */
+.entry {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+}
+.entry-main { grid-row: 1; }
+
+.entry-picture {
+  grid-area: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  padding-inline: 1.5rem 0;
+}
+/* When a sub-project follows, the line runs on from the picture's bottom
+   to the end of the row, so a tall description box can't leave a gap */
+.entry:has(+ .entry-sub) .entry-picture::after {
+  content: "";
+  flex: 1;
+  align-self: flex-start;
+  margin-inline-start: calc(var(--x, 50%) - 2px);   /* under the picture's centre */
+  width: 4px;
+  background: var(--leaf);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.project.is-visible .entry:has(+ .entry-sub) .entry-picture::after {
+  opacity: 1;
+  transition: opacity 0.5s ease 1.3s;
+}
+.entry-main .entry-picture { padding-top: 104px; }
+
+.entry-side {
+  grid-area: 1 / 1;
+  align-self: start;
+  margin-inline: 0 1.5rem;
+}
+.entry-main .entry-side { margin-top: 104px; }
+
+.entry-box {
+  padding: 1.5rem 1.75rem;
+  background: var(--mint);
+  border-radius: 14px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease;   /* hiding: first */
+}
+
+.project:nth-child(even) .entry-picture { grid-column: 1; padding-inline: 0 1.5rem; }
+.project:nth-child(even) .entry-side { grid-column: 3; margin-inline: 1.5rem 0; }
+
 /* Image + placeholder */
-.card img,
+.entry-picture img,
 .placeholder {
   display: block;
   width: 100%;
@@ -198,7 +260,7 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
     opacity 0.3s ease 0.1s,
     transform 0.35s ease-in 0.1s;
 }
-.project:nth-child(even) .card img,
+.project:nth-child(even) .entry-picture img,
 .project:nth-child(even) .placeholder { transform-origin: top right; }
 
 .placeholder {
@@ -219,42 +281,102 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
   font-family: inherit;
 }
 
-.card-text {
-  margin-top: 1.25rem;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.25s ease, transform 0.25s ease;   /* hiding: first */
-}
-.year {
-  color: var(--leaf);
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-.card h2 {
-  margin: 0.15rem 0 0.5rem;
+.entry-box h2 {
+  margin: 0 0 0.5rem;
   font-size: 1.75rem;
   line-height: 1.15;
   letter-spacing: -0.01em;
   color: var(--forest);
 }
-.card p {
+.entry-box p {
   margin: 0 0 0.75rem;
   max-width: 40ch;
 }
-.card a { font-weight: 600; }
+.entry-box > :last-child { margin-bottom: 0; }
+.entry-box a { font-weight: 600; }
 
-/* Revealed state (added by script.js when you scroll to it).
-   Showing runs branch → dot → picture → text.
+/* Sub-projects (5.1, 5.2, ...) hang below the picture on a short curve, a bit smaller.
+   Single pictures alternate a bit left and right (--x, set per step in SubEntry).
+   A pair splits the curve in two, and its second picture sits a bit lower. */
+.entry-sub {
+  --sub-line: 48px;
+  --stagger: 48px;   /* how much lower the second picture of a pair sits */
+}
+
+.sub-line {
+  display: block;
+  width: 100%;
+  height: var(--sub-line);
+  overflow: visible;
+}
+.sub-line path {
+  fill: none;
+  stroke: var(--leaf);
+  stroke-width: 4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sub-pictures {
+  width: 75%;
+  margin-inline-start: calc(var(--x) - 37.5%);   /* centred on --x */
+}
+.project .entry-sub .entry-picture img,
+.project .entry-sub .placeholder {
+  border-radius: 10px;
+  transform-origin: top center;
+}
+.entry-sub .placeholder { font-size: 0.8rem; }
+
+/* The drawing runs on past the first picture's top down to the lower one */
+.is-pair .sub-line {
+  height: calc(var(--sub-line) + var(--stagger));
+  margin-bottom: calc(-1 * var(--stagger));
+}
+.is-pair .sub-pictures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 4%;           /* with 1fr columns, centres land at 24% and 76% (see SubEntry) */
+  width: 100%;
+  margin-inline-start: 0;
+}
+.is-pair .sub-pictures > :nth-child(2) { margin-top: var(--stagger); }
+
+.sub-boxes {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: var(--sub-line);
+}
+.is-pair .sub-boxes > :nth-child(2) { margin-top: var(--stagger); }
+.sub-boxes .entry-box {
+  flex: 1;
+  padding: 1.1rem 1.4rem;
+  font-size: 0.95rem;
+}
+.entry-sub {
+  opacity: 0;
+  transition: opacity 0.2s ease;   /* hiding: first */
+}
+
+/* Revealed state (useReveal adds .is-visible when you scroll to it).
+   Showing runs branch → dot → picture → box → sub-projects.
    Hiding (the transitions above) runs the same steps in reverse. */
 .project.is-visible .branch svg {
   clip-path: inset(0 0 0 0);
   transition: clip-path 0.7s cubic-bezier(0.65, 0, 0.35, 1);
 }
+.project.is-visible .branch-date {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  transition: opacity 0.3s ease 0.35s, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s;
+}
 .project.is-visible .commit {
   transform: translate(-50%, -50%) scale(1);
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s;
 }
-.project.is-visible .card img,
+.project.is-visible .entry-picture img,
 .project.is-visible .placeholder {
   opacity: 1;
   transform: scale(1);
@@ -262,10 +384,14 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
     opacity 0.4s ease 0.75s,
     transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.75s;
 }
-.project.is-visible .card-text {
+.project.is-visible .entry-box {
   opacity: 1;
   transform: none;
   transition: opacity 0.5s ease 1.05s, transform 0.5s ease 1.05s;
+}
+.project.is-visible .entry-sub {
+  opacity: 1;
+  transition: opacity 0.5s ease 1.3s;
 }
 
 /* ===== Footer ===== */
@@ -286,7 +412,7 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
 .footer a:hover { color: var(--white); }
 .footer-links { display: flex; gap: 1.5rem; }
 
-/* ===== Phones: timeline moves to the left, all cards on the right ===== */
+/* ===== Phones: timeline moves to the left, everything stacks on the right ===== */
 @media (max-width: 760px) {
   :root { --middle: 64px; --trunk-x: calc(1.25rem + 32px); }
 
@@ -294,26 +420,32 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
   .project + .project { margin-top: 3rem; }
   .branch { grid-column: 1; }
 
-  .card,
-  .project:nth-child(even) .card {
+  .entry {
     grid-column: 2;
-    padding: 104px 0 0 0.75rem;
+    display: block;
   }
+  .project .entry .entry-picture { padding-inline: 0.75rem 0; }
+  .project .entry .entry-side { margin: 1rem 0 0 0.75rem; }
+  .sub-boxes { flex-direction: column; align-items: stretch; }
+  .is-pair .sub-boxes > :nth-child(2) { margin-top: 0; }
+
   .project:nth-child(even) .branch svg {
     left: 50%;
     right: 0;
     transform: none;
   }
   .project:nth-child(even) .commit { left: 100%; }
-  .project:nth-child(even) .card img,
+  .project:nth-child(even) .entry-picture img,
   .project:nth-child(even) .placeholder { transform-origin: top left; }
+  .project:nth-child(even) .branch-date { left: 75%; }
 }
 
 /* ===== Respect people who turn off animations ===== */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .branch svg, .commit, .card img, .placeholder, .card-text,
+  .branch svg, .commit, .branch-date, .entry-picture img, .placeholder, .entry-box, .entry-sub,
   .project.is-visible .branch svg, .project.is-visible .commit,
-  .project.is-visible .card img, .project.is-visible .placeholder,
-  .project.is-visible .card-text { transition: none; }
+  .project.is-visible .branch-date,
+  .project.is-visible .entry-picture img, .project.is-visible .placeholder,
+  .project.is-visible .entry-box, .project.is-visible .entry-sub { transition: none; }
 }
