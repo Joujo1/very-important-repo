@@ -3,7 +3,7 @@
   --forest: #1d4d2f;   /* dark green: hero, footer, headings */
   --leaf:   #2f8a55;   /* main green: branches, links */
   --sprout: #a8d8b6;   /* light green: details */
-  --mint:   #e6f3ea;   /* very light green: empty trunk, placeholders */
+  --mint:   #e6f3ea;   /* very light green: empty trunk, boxes */
   --white:  #ffffff;
   --ink:    #16281d;   /* body text */
 
@@ -214,7 +214,8 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
   content: "";
   flex: 1;
   align-self: flex-start;
-  margin-inline-start: calc(var(--x, 50%) - 2px);   /* under the picture's centre */
+  /* under the centre of the picture the timeline carries on from; --x is a fraction of the row frame */
+  margin-inline-start: calc(var(--x, 0.5) * (100% + 2 * var(--grow, 0px)) - var(--grow, 0px) - 2px);
   width: 4px;
   background: var(--leaf);
   opacity: 0;
@@ -245,10 +246,9 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
 .project:nth-child(even) .entry-picture { grid-column: 1; padding-inline: 0 1.5rem; }
 .project:nth-child(even) .entry-side { grid-column: 3; margin-inline: 1.5rem 0; }
 
-/* Image + placeholder. Pictures keep their own proportions and are scaled to the
-   column width, up or down, so nothing gets cut off. */
-.entry-picture img,
-.placeholder {
+/* Pictures keep their own proportions and are scaled to the column width,
+   up or down, so nothing gets cut off. */
+.entry-picture img {
   display: block;
   width: 100%;
   height: auto;
@@ -260,27 +260,7 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
     opacity 0.3s ease 0.1s,
     transform 0.35s ease-in 0.1s;
 }
-.project:nth-child(even) .entry-picture img,
-.project:nth-child(even) .placeholder { transform-origin: top right; }
-
-.placeholder {
-  aspect-ratio: 4 / 3;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  text-align: center;
-  color: var(--forest);
-  font-size: 0.95rem;
-  background:
-    repeating-linear-gradient(45deg, var(--mint) 0 14px, var(--white) 14px 28px);
-  border: 2px dashed var(--sprout);
-}
-.placeholder code {
-  display: block;
-  margin-top: 0.25rem;
-  font-weight: 600;
-  font-family: inherit;
-}
+.project:nth-child(even) .entry-picture img { transform-origin: top right; }
 
 .entry-box h2 {
   margin: 0 0 0.5rem;
@@ -296,17 +276,23 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
 .entry-box > :last-child { margin-bottom: 0; }
 .entry-box a { font-weight: 600; }
 
-/* Sub-projects (5.1, 5.2, ...) hang below the picture on a short curve, a bit smaller.
-   Single pictures alternate a bit left and right (--x, set per step in SubEntry).
-   A pair splits the curve in two, and its second picture sits a bit lower. */
+/* Sub-projects (1.1, 1.2, ...) hang below the picture above on short curves: two side by
+   side with the second a bit lower, or one centred. Both use the pair size, so pictures
+   never shrink row by row. --x (set in SubEntry) is where the timeline carries on below. */
 .entry-sub {
   --sub-line: 48px;
   --stagger: 48px;   /* how much lower the second picture of a pair sits */
+  /* How far a row may reach past the main picture on each side: what the page margin
+     allows, at most 48px. Equal on both sides, so the row stays centred under the main picture. */
+  --grow: min(48px, calc(1rem + max(0px, (100vw - 1560px) / 2)));
 }
 
+/* The curves and the pictures share one frame: the column plus --grow on each side.
+   Curve coordinates (shotX in projectTree.ts) are percentages of that frame. */
 .sub-line {
   display: block;
-  width: 100%;
+  width: calc(100% + 2 * var(--grow));
+  margin-inline-start: calc(-1 * var(--grow));
   height: var(--sub-line);
   overflow: visible;
 }
@@ -319,30 +305,38 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
 }
 
 .sub-pictures {
-  width: 75%;
-  margin-inline-start: calc(var(--x) - 37.5%);   /* centred on --x */
+  display: grid;
+  grid-template-columns: calc(0.8 * (100% - 2 * var(--grow)));   /* a lone child: 80% of the main picture */
+  justify-content: center;
+  margin-inline: calc(-1 * var(--grow));
 }
-.project .entry-sub .entry-picture img,
-.project .entry-sub .placeholder {
+.is-pair .sub-pictures {
+  grid-template-columns: 1fr 1fr;
+  gap: 4%;           /* centres land at 24% and 76%, see shotX in projectTree.ts */
+}
+/* Each picture is a column, so the line can run on from the one with children to the row's end */
+.sub-picture {
+  display: flex;
+  flex-direction: column;
+}
+.sub-picture.has-children::after {
+  content: "";
+  flex: 1;
+  align-self: center;
+  width: 4px;
+  background: var(--leaf);
+}
+.project .entry-sub .entry-picture img {
   border-radius: 10px;
   transform-origin: top center;
 }
-.entry-sub .placeholder { font-size: 0.8rem; }
 
 /* The drawing runs on past the first picture's top down to the lower one */
 .is-pair .sub-line {
   height: calc(var(--sub-line) + var(--stagger));
   margin-bottom: calc(-1 * var(--stagger));
 }
-.is-pair .sub-pictures {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: start;
-  gap: 4%;           /* with 1fr columns, centres land at 24% and 76% (see SubEntry) */
-  width: 100%;
-  margin-inline-start: 0;
-}
-.is-pair .sub-pictures > :nth-child(2) { margin-top: var(--stagger); }
+.is-pair .sub-picture:nth-child(2) { margin-top: var(--stagger); }
 
 .sub-boxes {
   display: flex;
@@ -356,6 +350,7 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
   padding: 1.1rem 1.4rem;
   font-size: 0.95rem;
 }
+.sub-boxes .is-empty { visibility: hidden; }   /* keeps the other box on its own picture's side */
 .entry-sub {
   opacity: 0;
   transition: opacity 0.2s ease;   /* hiding: first */
@@ -377,8 +372,7 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
   transform: translate(-50%, -50%) scale(1);
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s;
 }
-.project.is-visible .entry-picture img,
-.project.is-visible .placeholder {
+.project.is-visible .entry-picture img {
   opacity: 1;
   transform: scale(1);
   transition:
@@ -427,8 +421,10 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
   }
   .project .entry .entry-picture { padding-inline: 0.75rem 0; }
   .project .entry .entry-side { margin: 1rem 0 0 0.75rem; }
+  .entry-sub { --grow: 0.75rem; }
   .sub-boxes { flex-direction: column; align-items: stretch; }
   .is-pair .sub-boxes > :nth-child(2) { margin-top: 0; }
+  .sub-boxes .is-empty { display: none; }
 
   .project:nth-child(even) .branch svg {
     left: 50%;
@@ -436,17 +432,16 @@ a:focus-visible { outline: 3px solid var(--sprout); outline-offset: 3px; border-
     transform: none;
   }
   .project:nth-child(even) .commit { left: 100%; }
-  .project:nth-child(even) .entry-picture img,
-  .project:nth-child(even) .placeholder { transform-origin: top left; }
+  .project:nth-child(even) .entry-picture img { transform-origin: top left; }
   .project:nth-child(even) .branch-date { left: 75%; }
 }
 
 /* ===== Respect people who turn off animations ===== */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .branch svg, .commit, .branch-date, .entry-picture img, .placeholder, .entry-box, .entry-sub,
+  .branch svg, .commit, .branch-date, .entry-picture img, .entry-box, .entry-sub,
   .project.is-visible .branch svg, .project.is-visible .commit,
   .project.is-visible .branch-date,
-  .project.is-visible .entry-picture img, .project.is-visible .placeholder,
+  .project.is-visible .entry-picture img,
   .project.is-visible .entry-box, .project.is-visible .entry-sub { transition: none; }
 }

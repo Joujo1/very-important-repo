@@ -1,55 +1,49 @@
 import type { FC } from 'react'
-import type { SubStep } from '../data/projects'
-import { ProjectImage } from './ProjectImage'
+import { shotX, type Step } from '../data/projectTree'
 
 interface SubEntryProps {
-  step: SubStep
-  /** Centre of the picture above, in percent of the picture column: where the line starts */
-  fromX: number
-  /** Centre of this step's picture, in percent of the picture column */
-  x: number
+  step: Step
 }
 
-// Centres of the two pictures in a pair; matches the 48% columns and 4% gap in styles.css
-const PAIR_LEFT_X = 24
-const PAIR_RIGHT_X = 76
+/** A vertical curve in a 100x100 box, from x `from` at the top to x `to` at height `end`. */
+const curve = (from: number, to: number, end: number) =>
+  `M${from} 0 C${from} ${end * 0.6}, ${to} ${end * 0.4}, ${to} ${end}`
 
 /**
- * One step below the picture above: a short curve, then one smaller picture, or two side by
- * side with the second set a bit lower. Their description boxes sit across the trunk in the same order.
+ * One row below the picture above: a curve to each picture, then two pictures side by side
+ * (the second a bit lower) or one centred. Their description boxes sit across the trunk in the same order.
  */
-export const SubEntry: FC<SubEntryProps> = ({ step, fromX, x }) => {
-  const projects = 'image' in step ? [step] : step
-  const isPair = projects.length === 2
+export const SubEntry: FC<SubEntryProps> = ({ step }) => {
+  const { shots, fromX, parent } = step
+  const isPair = shots.length === 2
+  const continueX = parent === -1 ? 50 : shotX(shots.length, parent)
 
   return (
-    <article className={isPair ? 'entry entry-sub is-pair' : 'entry entry-sub'} style={{ '--x': `${x}%` }}>
+    <article className={isPair ? 'entry entry-sub is-pair' : 'entry entry-sub'} style={{ '--x': String(continueX / 100) }}>
       <div className="entry-picture">
         <svg className="sub-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-          {isPair ? (
-            <>
-              {/* the first picture starts halfway down the drawing, the lower one at the bottom */}
-              <path d={`M${fromX} 0 C${fromX} 30, ${PAIR_LEFT_X} 20, ${PAIR_LEFT_X} 50`} />
-              <path d={`M${fromX} 0 C${fromX} 45, ${PAIR_RIGHT_X} 40, ${PAIR_RIGHT_X} 100`} />
-            </>
-          ) : (
-            <path d={`M${fromX} 0 C${fromX} 50, ${x} 50, ${x} 100`} />
-          )}
+          {shots.map((shot, index) => (
+            // In a pair the first picture starts halfway down the drawing, the lower one at the bottom
+            <path key={shot.id} d={curve(fromX, shotX(shots.length, index), isPair && index === 0 ? 50 : 100)} />
+          ))}
         </svg>
         <div className="sub-pictures">
-          {projects.map((project) => (
-            <ProjectImage key={project.image} src={project.image} alt={project.description} />
+          {shots.map((shot, index) => (
+            <div key={shot.id} className={index === parent ? 'sub-picture has-children' : 'sub-picture'}>
+              <img src={shot.image} alt={shot.description ?? `Picture ${shot.id}`} loading="lazy" />
+            </div>
           ))}
         </div>
       </div>
-      <div className="entry-side sub-boxes">
-        {projects.map((project) => (
-          <div key={project.image} className="entry-box">
-            <p>{project.description}</p>
-            {project.link && <a href={project.link}>See the project</a>}
-          </div>
-        ))}
-      </div>
+      {shots.some((shot) => shot.description) && (
+        <div className="entry-side sub-boxes">
+          {shots.map((shot) => (
+            <div key={shot.id} className={shot.description ? 'entry-box' : 'entry-box is-empty'}>
+              {shot.description && <p>{shot.description}</p>}
+            </div>
+          ))}
+        </div>
+      )}
     </article>
   )
 }

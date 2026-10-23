@@ -2,7 +2,7 @@ import 'react'
 
 declare module 'react' {
   interface CSSProperties {
-    /** Horizontal centre of a sub-project's picture, as a percentage of the picture column */
+    /** Centre of the picture the timeline carries on from, as a fraction (0 to 1) of its row */
     '--x'?: string
   }
 }

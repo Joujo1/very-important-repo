@@ -18,9 +18,9 @@ export const App: FC = () => (
     <Timeline projects={projects} />
 
     <footer className="footer">
-      <h2>Still proceeding with this candidate?</h2>
+      <h2>Good job.</h2>
       <p>
-        <a href="mailto:you@example.com">you@example.com</a>
+        <a href="mailto:joel.kiener@gmx.ch">you@example.com</a>
       </p>
       <p className="footer-links">
         <a href="https://github.com/Joujo1">GitHub</a>

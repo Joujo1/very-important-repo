@@ -1,5 +1,5 @@
 import { useEffect, useRef, type FC } from 'react'
-import type { Project } from '../data/projects'
+import type { Project } from '../data/projectTree'
 import { ProjectItem } from './ProjectItem'
 
 interface TimelineProps {
@@ -43,7 +43,7 @@ export const Timeline: FC<TimelineProps> = ({ projects }) => {
       </div>
       <ol className="projects">
         {projects.map((project) => (
-          <ProjectItem key={project.title} project={project} />
+          <ProjectItem key={project.folder} project={project} />
         ))}
       </ol>
     </main>
